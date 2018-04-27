@@ -1,40 +1,39 @@
+import signal
+from multiprocessing import Process
+import os
 import time
-import threading
+
+print signal.SIGTERM
+processes = []
+def fun(x):
+    print 'current sub-process pid is %s' % os.getpid()
+    while True:
+        print 'args is %s ' % x
+        time.sleep(1)
 
 
-class BaseThread(threading.Thread):
-    def __init__(self, callback=None, callback_args=None, *args, **kwargs):
-        target = kwargs.pop('target')
-        super(BaseThread, self).__init__(target=self.target_with_callback, *args, **kwargs)
-        self.callback = callback
-        self.method = target
-        self.callback_args = callback_args
-
-    def target_with_callback(self):
-        self.method()
-        if self.callback is not None:
-            self.callback(*self.callback_args)
+def term(sig_num, addtion):
+    print 'terminate process %d' % os.getpid()
+    try:
+        print 'the processes is %s' % processes
+        for p in processes:
+            print 'process %d terminate' % p.pid
+            p.terminate()
+            # os.kill(p.pid, signal.SIGKILL)
+    except Exception as e:
+        print str(e)
 
 
-def my_thread_job():
-    # do any things here
-    print "thread start successfully and sleep for 5 seconds"
-    time.sleep(5)
-    print "thread ended successfully!"
-
-
-def cb(param1, param2):
-    # this is run after your thread end
-    print "callback function called"
-    print "{} {}".format(param1, param2)
-
-
-# example using BaseThread with callback
-thread = BaseThread(
-    name='test',
-    target=my_thread_job,
-    callback=cb,
-    callback_args=("hello", "world")
-)
-
-thread.start()
+if __name__ == '__main__':
+    print 'current pid is %s' % os.getpid()
+    for i in range(3):
+        t = Process(target=fun, args=(str(i),))
+        t.daemon = True
+        t.start()
+        processes.append(t)
+    signal.signal(signal.SIGTERM, term)
+    try:
+        for p in processes:
+            p.join() 
+    except Exception as e:
+        print str(e)
