@@ -14,7 +14,6 @@ CHUNK = 1024
 RECORD_SECONDS = 5
 WAVE_OUTPUT_FILENAME = "file.wav"
  
- 
 # start Recording
 stream = audio.open(format=FORMAT, channels=CHANNELS,
                 rate=RATE, input=True,
@@ -32,6 +31,7 @@ stream.close()
 audio.terminate()
  
 waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+waveFile.setfomat(0x0003)
 waveFile.setnchannels(CHANNELS)
 waveFile.setsampwidth(audio.get_sample_size(FORMAT))
 waveFile.setframerate(RATE)

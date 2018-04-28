@@ -31,7 +31,7 @@ class Classifer():
         feat, _ = engineer.feature_engineer(data)
         predictor = BabyCryPredictor(self.model)
 
-        prediction = predictor.classify(feat)
+        prediction = predictor.predict_proba(feat)
 
         return prediction
 
@@ -45,37 +45,16 @@ NCHANNELS = 1
 class Player:
 
     def __init__(self, audio_path):
-        self.f = open(audio_path, 'r')
-        self.load()
-
-    def load(self):
-        chunk = Chunk(self.f, bigendian=0)
-        chunk.read(4)
-        chunk = Chunk(self.f, bigendian=0)
-
-        wFormatTag, nchannels, framerate, dwAvgBytesPerSec, wBlockAlign = struct.unpack_from(
-            '<HHLLH', chunk.read(14))
-
-        sampwidth = struct.unpack_from('<H', chunk.read(2))[0]
-        sampwidth = (sampwidth + 7) // 8
-
-        chunk.read(chunk.chunksize)
-
-        self._nchannels = nchannels
-        self._framerate = framerate
-        self._samplewidth = sampwidth
-
-        chunk = Chunk(self.f, bigendian=0)
-        chunk.read(chunk.chunksize)
-
-        self._data_chunk = Chunk(self.f, bigendian=0)
+        self.wave = wave.open(audio_path, 'r')
+        self._samplewidth = self.wave.getsampwidth()
+        self._framerate = self.wave.getframerate()
+        self._nchannels = self.wave.getnchannels()
 
     def play(self, listener):
         p = pyaudio.PyAudio()
 
         def stream_callback(in_data, frame_count, time_info, status):
-            frames = self._data_chunk.read(self._samplewidth * frame_count)
-
+            frames = self.wave.readFrames(frame_count)
             if len(frames) > 0:
                 data = struct.unpack(str(len(frames) / self._samplewidth) + 'f', frames)
                 listener.notify(list(data))
@@ -101,6 +80,10 @@ class Player:
             self.f.close()
             listener.stop()
 
+        stream.stop_stream()
+        stream.close()
+        self.wave.close()
+        listener.stop()
 
 class Recorder(object):
 
@@ -111,6 +94,7 @@ class Recorder(object):
         p = pyaudio.PyAudio()
         if is_save:
             wf = wave.open(file_name, 'wb')
+            wf.setfomat(0x0003)
             wf.setnchannels(NCHANNELS)
             wf.setsampwidth(p.get_sample_size(FORMAT))
             wf.setframerate(SAMPLERATE)
@@ -176,6 +160,14 @@ class BabyCryDetection(threading.Thread):
         self.cond.acquire()
         while self.is_active:
             if len(self.window) >= self.interval * SAMPLERATE:
+                self.window = [ i / 4 for i in self.window ]
+                import matplotlib
+                matplotlib.use('Agg')
+                import matplotlib.pyplot as plt
+
+                fig = plt.figure()
+                plt.plot(self.window)
+                fig.savefig('plot1.png')
                 print cls.predict(self.window)
                 shift = self.hop * (int)(SAMPLERATE / FRAMESIZE) * FRAMESIZE
                 del self.window[0:shift]
@@ -197,16 +189,17 @@ class BabyCryDetection(threading.Thread):
         self.cond.release()
 
 if __name__ == "__main__":
-    recorder = Recorder()
-    player = Player("out.wav")
 
     cls = Classifer("./output/model/model.pkl")
     bcd = BabyCryDetection(cls)
     bcd.start()    
-    #player.play(bcd)
     
+    player = Player("new.wav")
+    player.play(bcd)
+    '''
+    recorder = Recorder()
     recorder.run(bcd, True, "record.wav")
     time.sleep(10)
     print "stop"
     recorder.stop()
-
+    '''

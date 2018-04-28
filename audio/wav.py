@@ -6,6 +6,9 @@ chunk = Chunk(f, bigendian=0)
 chunk.read(4)
 
 chunk = Chunk(f, bigendian=0)
+
+print chunk.chunkname == b"fmt"
+print chunk.chunkname == "fmt"
 print chunk.chunkname, chunk.chunksize
 chunk.read(18)
 
@@ -21,6 +24,11 @@ print chunk.read(1024)[0:10]
 print chunk.tell()
 
 
-chunk = Chunk(f, bigendian=0)
+import pyaudio
 
-print chunk.chunkname, chunk.chunksize
+p = pyaudio.PyAudio()
+
+print pyaudio.paInt16
+print pyaudio.paInt32
+print pyaudio.paFloat32
+
