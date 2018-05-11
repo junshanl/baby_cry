@@ -12,7 +12,7 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Flatten, Input, Conv2D
 from keras.preprocessing import image
 from scipy.io import wavfile 
-from feature import extract_spec
+from auido.singals import mel_spectrogram
 from keras import backend
 
 backend.clear_session()
@@ -28,7 +28,7 @@ for line in list(lines)[1:]:
     file_path = os.path.join('ESC-50-master/audio', file_name)
     if os.path.exists(file_path):
         sr, y = wavfile.read(file_path)
-        mel_spec_power = extract_spec(y, sr)
+        mel_spec_power = mel_spectrogram(y, sr)
         data.append(mel_spec_power)
         label.append(line[2])
 

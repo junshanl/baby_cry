@@ -134,7 +134,7 @@ def spectrogram(frames, power = 1):
     n_valid_freqz = int(1 + n_fft // 2)
 
     fft_window = get_window('hann', n_fft, fftbins=True)
-    stft_matrix = np.empty(n_valid_freqz, n_frame), dtype=np.complex)
+    stft_matrix = np.empty((n_valid_freqz, n_frame), dtype=np.float)
 
     for i in range(n_frame):
         stft = fft(fft_window * frames[i])[:n_valid_freqz]
@@ -149,3 +149,22 @@ def mel_spectrogram(y, sr, frame_size=2048, hop_length=512, power=2):
     mel_spec_power = np.dot(mel_bank, spec)
     return mel_spec_power
 
+def power_to_db(S, ref = 1.0, amin = 1e-10, top_db = 80.0 ):
+    
+    if np.issubdtype(S.dtype, np.complexfloating):
+        warnings.warn('power_to_db was called on complex input so phase '
+                      'information will be discarded. To suppress this warning, '
+                      'call power_to_db(magphase(D, power=2)[0]) instead.')
+        magnitude = np.abs(S)
+    else:
+        magnitude = S
+    
+    log_spec = 10.0 * np.log10(np.maximum(amin, magnitude))
+    log_spec -= 10.0 * np.log10(np.maximum(amin, ref))
+
+    if top_db is not None:
+        if top_db < 0:
+            raise ParameterError('top_db must be non-negative')
+        log_spec = np.maximum(log_spec, log_spec.max() - top_db)
+
+    return log_spec

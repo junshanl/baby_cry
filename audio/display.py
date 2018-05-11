@@ -2,14 +2,17 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
-from signals import spectrogram, fft_frequencies, mel, mfcc
+from signals import spectrogram, fft_frequencies, mel 
 import numpy as np
 from matplotlib.cm import get_cmap
 from matplotlib.ticker import Formatter, ScalarFormatter
 import matplotlib.colors as colors
 
-def __coord_fft_hz(n, sr=22050, **_kwargs):
+def __coord_hz(n, sr, **_kwargs):
     '''Get the frequencies for FFT bins'''
+    if sr == None:
+        raise ParameterError('sample rate is not defined')
+    
     n_fft = 2 * (n - 1)
     # The following code centers the FFT bins at their frequencies
     # and clips to the non-negative frequency range [0, nyquist]
@@ -23,18 +26,13 @@ def __coord_n(n, **_kwargs):
     '''Get bare positions'''
     return np.arange(n+1)
 
-def __mesh_coords(ax_type, coords, n, **kwargs):
+
+def __mesh_coords(ax_type, n, **kwargs):
    
-   if coords is not None:
-        if len(coords) < n:
-            raise ParameterError('Coordinate shape mismatch: '
-                                 '{}<{}'.format(len(coords), n))
-        return coords
-   
-   coord_map = {'linear': __coord_fft_hz,
-                 'hz': __coord_fft_hz,
-                 'log': __coord_fft_hz,
-                 None: __coord_n}
+   coord_map = {'linear': __coord_hz,
+                'hz': __coord_hz,
+                'time':__coord_n,
+                None: __coord_n}
    
    if ax_type not in coord_map:
         raise ParameterError('Unknown axis type: {}'.format(ax_type))
@@ -59,79 +57,62 @@ def cmap(data, robust=True, cmap_seq='magma', cmap_bool='gray_r', cmap_div='cool
 
     if min_val >= 0 or max_val <= 0:
         return get_cmap(cmap_seq)
-
+   
     return get_cmap(cmap_div)
 
-def specshow(data, x_coords=None, y_coords=None,
-             x_axis=None, y_axis=None, **kwargs):
-    
+def specshow(data, x_axis=None, y_axis=None, sr = None, **kwargs):
+    kwargs.setdefault('cmap',get_cmap('magma'))
     kwargs.setdefault('rasterized', True)
     kwargs.setdefault('edgecolors', 'None')
     kwargs.setdefault('shading', 'flat')
-    
-    all_params = dict(kwargs=kwargs)
+   
+    all_params = dict(kwargs = kwargs, sr = sr)
 
-    y_coords = __mesh_coords(y_axis, y_coords, data.shape[0], **all_params)
-    x_coords = __mesh_coords(x_axis, x_coords, data.shape[1], **all_params)
+    y_coords = __mesh_coords(y_axis, data.shape[0], **all_params)
+    x_coords = __mesh_coords(x_axis, data.shape[1], **all_params)
 
 
     axes = plt.gca()
-    plt.pcolor(x_coords, y_coords, data) 
+    img = axes.pcolormesh(x_coords, y_coords, data, **kwargs) 
+    plt.sci(img)
 
+    axes.set_xlim(x_coords.min(), x_coords.max())
+    axes.set_ylim(y_coords.min(), y_coords.max())
+
+    __axis_decorate(axes.xaxis, x_axis)
+    __axis_decorate(axes.yaxis, y_axis)
+   
     return axes
 
+def __axis_decorate(axis, ax_type):
+    if ax_type in ['linear', 'hz']:
+        axis.set_major_formatter(ScalarFormatter())
+        axis.set_label_text('Hz')
 
+    if ax_type == 'db':
+        axis.set_label_text('decibel')
 
-def amplitude_to_db(spec):
-    power = amplitude_to_power(spec)
-    return 10.0 * np.log10(power)
+    if ax_type == 'time':
+        axis.set_label_text('time')
 
-def amplitude_to_power(spec):
-    magnitude = np.abs(spec)
-    power = np.square(magnitude)
-    return power
-
-
-import librosa.feature
-import librosa.util
-import librosa.display
-
-sr ,y = wavfile.read("6.wav")
-print np.max(y)
-y = librosa.util.normalize(np.array(y, dtype = np.float))
-d = spectrogram(y)
-
-fig = plt.figure()
-plt.plot(y)
-fig.savefig("plot4.png")
-
-
-print y, sr
-fig = plt.figure()
-mel_bank = mel(44100, 2048)
-
-D = librosa.feature.mfcc(y, sr)
-print np.shape(D)
-librosa.display.specshow(np.transpose(D)) 
-
-fig.savefig('plot7.png')
+from signals import mel_spectrogram 
 
 fig = plt.figure()
 
-print np.shape(mfcc(y, 44100, 2048))
-librosa.display.specshow(mfcc(y, 44100, 2048)) 
-fig.savefig('plot5.png')
+sr, y = wavfile.read("1.wav")
 
+mel_spec_power = mel_spectrogram(y, sr)
 
+specshow(10. * np.log10(mel_spec_power), y_axis = 'hz', sr = sr)
 
+import librosa
 
-
-fig = plt.figure()
-D = librosa.amplitude_to_db(librosa.stft(y), ref=np.max)
-librosa.display.specshow(D, y_axis='linear')
+print np.max(10. * np.log10(mel_spec_power))
+print np.max(librosa.power_to_db(librosa.feature.melspectrogram(y, sr)))
 plt.colorbar(format='%+2.0f dB')
-plt.title('Linear-frequency power spectrogram')
+
 fig.savefig('plot6.png')
+
 
 
 
