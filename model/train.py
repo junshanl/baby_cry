@@ -28,10 +28,10 @@ for line in list(lines)[1:]:
     file_path = os.path.join('ESC-50-master/audio', file_name)
     if os.path.exists(file_path):
         sr, y = wavfile.read(file_path)
+        y = y / 32768.
         mel_spec_power = mel_spectrogram(y, sr)
         data.append(mel_spec_power)
         label.append(line[2])
-
 
 n_samples, height, width = np.shape(data) 
 data = np.reshape(data, (n_samples, height, width, 1))
