@@ -149,6 +149,11 @@ def mel_spectrogram(y, sr, frame_size=2048, hop_length=512, power=2):
     mel_spec_power = np.dot(mel_bank, spec)
     return mel_spec_power
 
+def mfcc(y, sr, n_mfcc=20, dct_type=2):
+    S = mel_spectrogram(y, sr)
+    S = power_to_db(S)
+    return dct(S, axis=0, type=dct_type)[:n_mfcc]
+
 def power_to_db(S, ref = 1.0, amin = 1e-10, top_db = 80.0 ):
     
     if np.issubdtype(S.dtype, np.complexfloating):
