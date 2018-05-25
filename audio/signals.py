@@ -6,6 +6,9 @@ from scipy.signal import get_window, filtfilt
 from scipy.fftpack import fft, dct
 
 
+def n_frames(y, frames_size, hop_size):
+    return 1 + int((len(y) - frame_size) / hop_size)
+
 def enframe(y, frame_length=2048, hop_length=512):
     n_frames = 1 + int((len(y) - frame_length) / hop_length)
     y_frames = as_strided(y, shape=(n_frames, frame_length),
@@ -142,12 +145,16 @@ def spectrogram(frames, power = 1):
     
     return stft_matrix
 
-def mel_spectrogram(y, sr, frame_size=2048, hop_length=512, power=2):
-    frames = enframe(y, frame_length=frame_size, hop_length=hop_length)
+def mel_spectrogram(y, S=None, sr=44100, frame_size=2048, hop_length=512, power=2):
+    if S is not None:
+        frames = S
+    else:
+        frames = enframe(y, frame_length=frame_size, hop_length=hop_length)
     spec = spectrogram(frames, power)
     mel_bank = mel(sr, frame_size)
     mel_spec_power = np.dot(mel_bank, spec)
     return mel_spec_power
+
 
 def mfcc(y, sr, n_mfcc=20, dct_type=2):
     S = mel_spectrogram(y, sr)
