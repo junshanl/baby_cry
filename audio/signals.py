@@ -156,8 +156,8 @@ def mel_spectrogram(y, S=None, sr=44100, frame_size=2048, hop_length=512, power=
     return mel_spec_power
 
 
-def mfcc(y, sr, n_mfcc=20, dct_type=2):
-    S = mel_spectrogram(y, sr)
+def mfcc(y, sr, frame_size, hop_size, n_mfcc=20, dct_type=2):
+    S = mel_spectrogram(y,None, sr, frame_size, hop_size)
     S = power_to_db(S)
     return dct(S, axis=0, type=dct_type)[:n_mfcc]
 

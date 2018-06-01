@@ -64,7 +64,8 @@ class WaveReader:
 
     def initfp(self, file):
         self._file = Chunk(file, bigendian=0)
-        if self._file.getname() != 'RIFF':
+        if self._file.getname() != 'RIFF' and self._file.getname() != 'NIST':
+            print self._file.getname()
             raise Error, 'file does not start with RIFF id'
         if self._file.read(4) != 'WAVE':
             raise Error, 'not a WAVE file'

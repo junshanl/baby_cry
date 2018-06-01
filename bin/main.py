@@ -28,7 +28,11 @@ def predict(data):
     t.start()
 
 proc = Processor(func=predict)
-#player = Player('./1.wav', proc.handle)
 recorder = Recorder(proc.handle)
 recorder.recorder()
 
+
+'''
+player = Player('./t.wav', None)
+player.play()
+'''

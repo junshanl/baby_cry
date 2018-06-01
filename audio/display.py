@@ -94,7 +94,7 @@ def __axis_decorate(axis, ax_type):
 
     if ax_type == 'time':
         axis.set_label_text('time')
-
+'''
 from signals import mel_spectrogram 
 
 fig = plt.figure()
@@ -112,7 +112,7 @@ print np.max(librosa.power_to_db(librosa.feature.melspectrogram(y, sr)))
 plt.colorbar(format='%+2.0f dB')
 
 fig.savefig('plot6.png')
-
+'''
 
 
 
