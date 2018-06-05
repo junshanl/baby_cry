@@ -9,6 +9,7 @@ import numpy as np
 import librosa
 import glob
 from ubm import train_ubm
+import yaml
 
 path = './TIMIT/TRAIN/DR*/*/*.WAV'
 
@@ -27,4 +28,8 @@ data = np.array(read(path))
 print np.shape(data)
 data = np.reshape(data, (-1, 20))
    
-train_ubm(data.T, 32)
+w, m, c = train_ubm(data, 32)
+
+model = {'w':w,'mean':m,'cov':c}
+with open('ubm.yml', 'w') as outfile:
+    yaml.dump(model, outfile, default_flow_style=False)

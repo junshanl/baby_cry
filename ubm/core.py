@@ -14,10 +14,13 @@ def expectation(X, w, mean, cov):
         for i in range(n):
             p[i] = w[i] * multivariate_normal.pdf(X[k], mean=mean[i], cov=cov[i])  
 
+        if np.sum(p) == 0:
+            print p
         llh = np.log(np.sum(p))
         p = p / np.sum(p)
         pp[k] = p
     
+    print llh
     return pp, llh
 
 def maximization(X, pp):
@@ -34,8 +37,7 @@ def maximization(X, pp):
         X0 = X - mean[i]
         c = np.sqrt(pp[:, i])
         X0 = np.multiply(X0, c[:,np.newaxis])
-        cov[i] = np.dot(np.transpose(X0), X0) / n[i] + np.eye(d) * 1e-6
-
+        cov[i] = np.dot(np.transpose(X0), X0) / n[i] + np.eye(d) * 1e-3 
     return w, mean, cov
 
 
@@ -49,7 +51,7 @@ def init(X, n_components):
     
     if not cv.shape:
         cv.shape = (1, 1)
-    cov = np.tile(np.diag(cv), (n_components, 1))
+    cov = np.tile(cv, (n_components, 1,1))
    
     return w, mean, cov
 
