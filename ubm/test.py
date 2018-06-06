@@ -3,7 +3,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import numpy as np
-from core import expectation, maximization, adaption, init
+from core import expectation, expectation_old, maximization, adaption, init
 
 from scipy.stats import multivariate_normal
 
@@ -18,24 +18,25 @@ X = np.concatenate((X1, X2))
 
 
 w,m,c = init(X, 2)
-for i in range(200):
-    pp, llh = expectation(X,w,m,c)
+for i in range(20):
+    pp, llh = expectation(X, w, m, c)
+    print llh 
     w, m, c = maximization(X, pp)
 
-print w
-print m
-print c
 
 X = np.concatenate((X, X3))
-
+'''
 for i in range(10):
     pp, llh = expectation(X, w, m, c)
+    print llh 
+    pp, llh = expectation_old(X, w, m, c)
+    print llh
     w, m, c = adaption(X, pp, w, m, c)
 
 print w
 print m
 print c
-
+'''
 
 x = np.linspace(-2., 15.)
 y = np.linspace(-2., 15.)
