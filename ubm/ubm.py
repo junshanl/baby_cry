@@ -5,6 +5,7 @@ from core import expectation, maximization, init, adaption
 from audio.timit_reader import read_timit
 from audio.signals import mfcc
 import yaml
+import os
 import glob
 
 def train_ubm(X, n_components, epslion =1e-6, max_iters = 500, save_step=1, save_path=None, save_name=None):
@@ -34,13 +35,12 @@ def train_ubm(X, n_components, epslion =1e-6, max_iters = 500, save_step=1, save
 
         if save_step >= 1 and n_iter % save_step == 0 and save_path != None:
             model = {'w':w, 'mean':mean, 'cov':cov}
-            full_path = os.join(save_path, save_name, '_' ,n_iter, '.yml')
-            with open(save_path, 'wb') as f:
+            full_path = os.path.join(save_path, "".join((save_name, '_' , str(n_iter), '.yml')))
+            with open(full_path, 'wb') as f:
                 yaml.dump(model, f, default_flow_style=False)
               
   
     return w, mean, cov
-
 
 def preprocess(path):
     wav_path = glob.glob(path)
