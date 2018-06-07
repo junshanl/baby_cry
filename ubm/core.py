@@ -34,11 +34,10 @@ def expectation(X, w, means, covars):
 
     lpr = (log_multivariate_normal_density(X, means, covars) +
                np.log(w))
-   
+ 
     logprob = np.log(np.sum(np.exp(lpr), axis=1))   
-    llh = np.sum(logprob)
     pp = np.exp(lpr - logprob[:, np.newaxis])
-    return pp, llh
+    return pp, logprob
 
 def expectation_old(X, w, mean, cov):
     m = np.shape(X)[0]
@@ -81,7 +80,7 @@ def maximization(X, pp):
 
 def init(X, n_components):
     mean = cluster.KMeans(
-        n_clusters=n_components).fit(X).cluster_centers_
+        n_clusters=n_components, verbose=1).fit(X).cluster_centers_
 
     w  =  np.tile(1.0 / n_components,n_components)
 
