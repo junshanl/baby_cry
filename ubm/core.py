@@ -34,7 +34,8 @@ def expectation(X, w, means, covars):
 
     lpr = (log_multivariate_normal_density(X, means, covars) +
                np.log(w))
- 
+     
+    print np.max(lpr)
     logprob = np.log(np.sum(np.exp(lpr), axis=1))   
     pp = np.exp(lpr - logprob[:, np.newaxis])
     return pp, logprob
